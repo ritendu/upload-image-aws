@@ -23,6 +23,7 @@
     "nodemon": "^2.0.20",
     "office-text-extractor": "^2.0.0",
     "officeparser": "^3.2.2",
-    "request": "^2.88.2"
+    "request": "^2.88.2",
+    "stream": "^0.0.2"
   }
 }

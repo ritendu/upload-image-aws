@@ -5,9 +5,10 @@ const fileupload = require('express-fileupload');
 const dotenv = require('dotenv');
 dotenv.config();
 const AWS = require('aws-sdk');
-const fs = require('fs');
-const officeParser = require('officeparser');
-const { extractText } = require('node-extract-text-from-file')
+// const fs = require('fs');
+// const officeParser = require('officeparser');
+// const { extractText } = require('node-extract-text-from-file')
+const stream = require('stream');
 // const s3 = new AWS.S3({
 //   accessKeyId: 'YOUR_ACCESS_KEY',
 //   secretAccessKey: 'YOUR_SECRET_KEY'
@@ -37,12 +38,34 @@ app.post('/upload',async(req,res)=>{
 
       const data = await s3.upload(params).promise();
       const location = data.Location
-  const { text, originFileType } = await extractText({ fromUrl: location });
-  // console.log(text,"text")
-  const arr = text.split(' ');
-  const newArr = arr.filter(item=>item!=='');
+ const s3ReadStream = s3.getObject({
+    Bucket: process.env.S3_BUCKET_NAME,
+    Key: data.Key
+  }).createReadStream();
 
-  console.log(newArr.length,"kkkk")
+  // Split the stream into chunks of 1024 bytes
+  const chunkSize = 1024;
+  let bytesRead = 0;
+
+  s3ReadStream.on('data', function(chunk) {
+    const chunkStream = new stream.PassThrough();
+    chunkStream.end(chunk);
+
+    // Do something with the chunk stream, such as write it to a file or send it over a network socket
+    // ...
+
+    bytesRead += chunk.length;
+    console.log(`Read ${bytesRead} bytes`);
+  });
+
+  s3ReadStream.on('end', function() {
+    console.log('S3 read stream ended');
+  });
+
+  s3ReadStream.on('error', function(err) {
+    console.error('S3 read stream error:', err);
+  });
+
       // const param = {
       //   Bucket: process.env.S3_BUCKET_NAME,
       //   Key: data.Key
